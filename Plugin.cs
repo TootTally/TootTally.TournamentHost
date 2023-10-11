@@ -8,7 +8,7 @@ using TootTally.Utils;
 using TootTally.Utils.TootTallySettings;
 using UnityEngine;
 
-namespace TootTally.ModuleTemplate
+namespace TootTally.TournamentHost
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
     [BepInDependency("TootTally", BepInDependency.DependencyFlags.HardDependency)]
@@ -16,7 +16,7 @@ namespace TootTally.ModuleTemplate
     {
         public static Plugin Instance;
 
-        private const string CONFIG_NAME = "ModuleTemplate.cfg";
+        private const string CONFIG_NAME = "TournamentHost.cfg";
         public Options option;
         public ConfigEntry<bool> ModuleConfigEnabled { get; set; }
         public bool IsConfigInitialized { get; set; }
@@ -39,29 +39,13 @@ namespace TootTally.ModuleTemplate
         private void TryInitialize()
         {
             // Bind to the TTModules Config for TootTally
-            ModuleConfigEnabled = TootTally.Plugin.Instance.Config.Bind("Modules", "ModuleTemplate", true, "<insert module description here>");
+            ModuleConfigEnabled = TootTally.Plugin.Instance.Config.Bind("Modules", "TournamentHost", true, "Tournament Host Client for TootTally");
             TootTally.Plugin.AddModule(this);
         }
 
         public void LoadModule()
         {
-            string configPath = Path.Combine(Paths.BepInExRootPath, "config/");
-            ConfigFile config = new ConfigFile(configPath + CONFIG_NAME, true);
-            option = new Options()
-            {
-                // Set your config here by binding them to the related ConfigEntry in your Options class
-                // Example:
-                // Unlimited = config.Bind(CONFIG_FIELD, "Unlimited", DEFAULT_UNLISETTING)
-            };
-
-            settingPage = TootTallySettingsManager.AddNewPage("ModulePageName", "HeaderText", 40f, new Color(0,0,0,0));
-            if (settingPage != null) {
-                // Use TootTallySettingPage functions to add your objects to TootTallySetting
-                // Example:
-                // page.AddToggle(name, option.Unlimited);
-            }
-
-            Harmony.CreateAndPatchAll(typeof(ModuleTemplatePatches), PluginInfo.PLUGIN_GUID);
+            Harmony.CreateAndPatchAll(typeof(TournamentHostPatches), PluginInfo.PLUGIN_GUID);
             LogInfo($"Module loaded!");
         }
 
@@ -72,9 +56,31 @@ namespace TootTally.ModuleTemplate
             LogInfo($"Module unloaded!");
         }
 
-        public static class ModuleTemplatePatches
+        public static class TournamentHostPatches
         {
-            // Apply your Trombone Champ patches here
+
+            private static Vector2 _screenSize;
+            private static int _numberOfScreens;
+            [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
+            [HarmonyPostfix]
+            public static void OnGameControllerStart(GameController __instance)
+            {
+                _screenSize = new Vector2(Screen.width, Screen.height);
+                _numberOfScreens = 4;
+                var screenRatio = _numberOfScreens / 2f;
+                var gameplayCanvas = GameObject.Find("GameplayCanvas");
+                gameplayCanvas.GetComponent<Canvas>().scaleFactor = screenRatio;
+                gameplayCanvas.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+
+                var botLeftCam = GameObject.Find("GameplayCam").GetComponent<Camera>();
+                var botRightCam = GameObject.Instantiate(botLeftCam);
+                var topLeftCam = GameObject.Instantiate(botLeftCam);
+                var topRightCam = GameObject.Instantiate(botLeftCam);
+                botRightCam.pixelRect = new Rect(_screenSize.x / screenRatio, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
+                botLeftCam.pixelRect = new Rect(0, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
+                topLeftCam.pixelRect = new Rect(0, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
+                topRightCam.pixelRect = new Rect(_screenSize.x / screenRatio, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
+            }
         }
 
         public class Options
