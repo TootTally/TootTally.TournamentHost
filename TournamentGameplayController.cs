@@ -29,6 +29,7 @@ namespace TootTally.TournamentHost
             _camera = camera;
             _bounds = bounds;
             camera.pixelRect = bounds;
+            camera.transform.localPosition = new Vector2(-4.45f, 0);
             _spectatingSystem = spectatingSystem;
             _spectatingSystem.OnWebSocketOpenCallback = OnSpectatingConnect;
 
@@ -39,7 +40,8 @@ namespace TootTally.TournamentHost
             _canvas.renderMode = RenderMode.ScreenSpaceCamera;
 
             var rect = _container.AddComponent<RectTransform>();
-            rect.anchoredPosition = _bounds.position;
+            rect.anchoredPosition = new Vector2(_bounds.position.x - _bounds.width, _bounds.position.y);
+            rect.anchoredPosition =  _bounds.position;
             rect.sizeDelta = new Vector2(_bounds.width, _bounds.height);
             rect.pivot = Vector2.one;
 
@@ -67,7 +69,7 @@ namespace TootTally.TournamentHost
 
         private void Update()
         {
-            _spectatingSystem.UpdateStacks();
+            _spectatingSystem?.UpdateStacks();
             HandlePitchShift();
             PlaybackSpectatingData(_gcInstance);
         }
@@ -87,6 +89,7 @@ namespace TootTally.TournamentHost
 
         private void OnUserStateReceived(SocketUserState stateData)
         {
+
         }
 
         private void OnFrameDataReceived(SocketFrameData frameData)

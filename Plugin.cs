@@ -34,7 +34,7 @@ namespace TootTally.TournamentHost
         {
             if (Instance != null) return;
             Instance = this;
-            
+
             GameInitializationEvent.Register(Info, TryInitialize);
         }
 
@@ -62,7 +62,6 @@ namespace TootTally.TournamentHost
         {
 
             private static Vector2 _screenSize;
-            private static int _numberOfScreens;
             private static List<TournamentGameplayController> _tournamentControllerList = new List<TournamentGameplayController>();
             [HarmonyPatch(typeof(GameController), nameof(GameController.Start))]
             [HarmonyPostfix]
@@ -70,32 +69,61 @@ namespace TootTally.TournamentHost
             {
                 _tournamentControllerList?.Clear();
                 _screenSize = new Vector2(Screen.width, Screen.height);
-                _numberOfScreens = 4;
-                var screenRatio = _numberOfScreens / 2f;
+                var horizontalScreenCount = 4;
+                var horizontalRatio = _screenSize.x / horizontalScreenCount;
+                var verticalScreenCount = 2;
+                var verticalRatio = _screenSize.y / verticalScreenCount;
                 var gameplayCanvas = GameObject.Find("GameplayCanvas");
-                gameplayCanvas.GetComponent<Canvas>().scaleFactor = screenRatio;
+                gameplayCanvas.GetComponent<Canvas>().scaleFactor = verticalScreenCount;
                 gameplayCanvas.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
 
                 var botLeftCam = GameObject.Find("GameplayCam").GetComponent<Camera>();
-                var botRightCam = GameObject.Instantiate(botLeftCam);
-                var topLeftCam = GameObject.Instantiate(botLeftCam);
-                var topRightCam = GameObject.Instantiate(botLeftCam);
+                //var botRightCam = GameObject.Instantiate(botLeftCam);
+                //var topLeftCam = GameObject.Instantiate(botLeftCam);
+                //var topRightCam = GameObject.Instantiate(botLeftCam);
                 //botRightCam.pixelRect = new Rect(_screenSize.x / screenRatio, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
-                botLeftCam.pixelRect = new Rect(0, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
+                //botLeftCam.pixelRect = new Rect(0, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
                 //topLeftCam.pixelRect = new Rect(0, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
                 //topRightCam.pixelRect = new Rect(_screenSize.x / screenRatio, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
 
-                var tc1 = gameplayCanvas.AddComponent<TournamentGameplayController>();
-                tc1.Initialize(__instance, botRightCam, new Rect(_screenSize.x / screenRatio, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio), new SpectatingSystem(11, "Megalovania"));
-                _tournamentControllerList.Add(tc1);
+                int[][] idList = new int[verticalScreenCount][];
+                idList[0] = new int[] { 374, 114, 372, 62 };
+                idList[1] = new int[] { 0, 11, 242, 0 };
 
-                var tc2 = gameplayCanvas.AddComponent<TournamentGameplayController>();
-                tc2.Initialize(__instance, topLeftCam, new Rect(0, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio), new SpectatingSystem(1385, "Benny"));
+                /*
+                / grist:1
+                / dom: 62
+                / Samuran: 7
+                / Danew: 106
+                / Silver : 98
+                / Beta : 11
+                / Guardie : 114
+                / Dew : 374
+                / Static : 242
+                / PX : 372
+                */
+                for (int y = 0; y < verticalScreenCount; y++)
+                {
+                    for (int x = 0; x < horizontalScreenCount; x++)
+                    {
+                        if (idList[y][x] != 0)
+                        {
+                            var tc = gameplayCanvas.AddComponent<TournamentGameplayController>();
+                            tc.Initialize(__instance, GameObject.Instantiate(botLeftCam), new Rect(x * horizontalRatio, y * verticalRatio, horizontalRatio, verticalRatio), new SpectatingSystem(idList[y][x], idList[y][x].ToString()));
+                            _tournamentControllerList.Add(tc);
+                        }
+                    }
+                }
+
+                botLeftCam.enabled = false;
+
+                /*var tc2 = gameplayCanvas.AddComponent<TournamentGameplayController>();
+                tc2.Initialize(__instance, topLeftCam, new Rect(0, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio), new SpectatingSystem(62, "RunDom"));
                 _tournamentControllerList.Add(tc2);
 
                 var tc3 = gameplayCanvas.AddComponent<TournamentGameplayController>();
-                tc3.Initialize(__instance, topRightCam, new Rect(_screenSize.x / screenRatio, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio), new SpectatingSystem(2369, "koozie"));
-                _tournamentControllerList.Add(tc3);
+                tc3.Initialize(__instance, topRightCam, new Rect(_screenSize.x / screenRatio, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio), new SpectatingSystem(98, "Silver"));
+                _tournamentControllerList.Add(tc3);*/
 
                 __instance.pointer.SetActive(false);
             }
