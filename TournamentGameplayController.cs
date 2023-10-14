@@ -1,14 +1,12 @@
-﻿using System;
+﻿using HighscoreAccuracy;
+using MonoMod.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using TootTally.Graphics;
 using TootTally.Spectating;
-using TootTally.Utils;
 using TootTally.Utils.Helpers;
 using UnityEngine;
-using UnityEngine.Audio;
-using UnityEngine.Experimental.AI;
-using UnityEngine.Playables;
-using UnityEngine.PostProcessing;
 using UnityEngine.UI;
 using static TootTally.Spectating.SpectatingManager;
 
@@ -25,6 +23,8 @@ namespace TootTally.TournamentHost
         private GameObject _pointer;
         private CanvasGroup _pointerGlowCanvasGroup;
         private GameObject _noteParticles;
+        private GameObject _UIHolder;
+        private PercentCounter _percentCounter;
 
         public bool IsReady => _frameData != null && _frameData.Count > 0 && _frameData.Last().time > 1f;
 
@@ -61,11 +61,18 @@ namespace TootTally.TournamentHost
             _multiplierTextObject = _multiplierTextShadow.gameObject;
             _multiplierTextRect = _multiplierTextObject.GetComponent<RectTransform>();
 
-            _UIScoreShadow = GameObject.Instantiate(_gcInstance.ui_score_shadow, _container.transform);
-            _UIScore = _UIScoreShadow.transform.Find("Text top").GetComponent<Text>();
+            _UIHolder = GameObject.Instantiate(_gcInstance.ui_score_shadow.transform.parent.parent.gameObject, _container.transform);
+            GameObjectFactory.DestroyFromParent(_UIHolder, "time_elapsed");
+            GameObjectFactory.DestroyFromParent(_UIHolder, "PracticeMode");
+            GameObjectFactory.DestroyFromParent(_UIHolder, "time_elapsed_bar");
 
-            _highestComboTextShadow = GameObject.Instantiate(_gcInstance.highestcomboshad, _container.transform);
-            _highestComboText = _highestComboTextShadow.transform.Find("Text top").GetComponent<Text>();
+            DestroyImmediate(_UIHolder.transform.Find("upper_right/ScoreShadow(Clone)").GetComponent<PercentCounter>());
+
+            _UIScoreShadow = _UIHolder.transform.Find("upper_right/ScoreShadow").GetComponent<Text>();
+            _UIScore = _UIScoreShadow.transform.Find("Score").GetComponent<Text>();
+
+            _highestComboTextShadow = _UIHolder.transform.Find("maxcombo/maxcombo_shadow").GetComponent<Text>();
+            _highestComboText = _highestComboTextShadow.transform.Find("maxcombo_text").GetComponent<Text>();
 
             _noteParticlesIndex = 0;
             _multiHideTimer = -1f;

@@ -10,7 +10,6 @@ using TootTally.Spectating;
 using TootTally.Utils;
 using TootTally.Utils.TootTallySettings;
 using UnityEngine;
-using UnityEngine.Playables;
 using UnityEngine.UI;
 
 namespace TootTally.TournamentHost
@@ -148,10 +147,10 @@ namespace TootTally.TournamentHost
                         }
                     }
                 }
-
+                LeanTween.init(LeanTween.maxTweens * (int)verticalScreenCount * (int)horizontalScreenCount);
                 botLeftCam.enabled = false;
                 __instance.pointer.SetActive(false);
-                __instance.ui_score_shadow.gameObject.SetActive(false);
+                __instance.ui_score_shadow.transform.parent.parent.transform.localScale = Vector3.zero;
             }
 
             [HarmonyPatch(typeof(GameController), nameof(GameController.getScoreAverage))]
