@@ -51,6 +51,7 @@ namespace TootTally.TournamentHost
         {
             string configPath = Path.Combine(Paths.BepInExRootPath, "config/");
             ConfigFile config = new ConfigFile(configPath + CONFIG_NAME, true);
+            config.SaveOnConfigSet = true;
             option = new Options()
             {
                 HorizontalScreenCount = config.Bind("Global", "HorizontalScreenCount", 4f, "Amount of screen displayed horizontally"),
@@ -109,14 +110,7 @@ namespace TootTally.TournamentHost
 
                 var gridLayout = canvasObject.AddComponent<GridLayoutGroup>();
                 gridLayout.cellSize = new Vector2(horizontalRatio / canvas.scaleFactor, verticalRatio / canvas.scaleFactor);
-
-                //var botRightCam = GameObject.Instantiate(botLeftCam);
-                //var topLeftCam = GameObject.Instantiate(botLeftCam);
-                //var topRightCam = GameObject.Instantiate(botLeftCam);
-                //botRightCam.pixelRect = new Rect(_screenSize.x / screenRatio, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
-                //botLeftCam.pixelRect = new Rect(0, 0, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
-                //topLeftCam.pixelRect = new Rect(0, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
-                //topRightCam.pixelRect = new Rect(_screenSize.x / screenRatio, _screenSize.y / screenRatio, _screenSize.x / screenRatio, _screenSize.y / screenRatio);
+                gridLayout.startCorner = GridLayoutGroup.Corner.LowerLeft;
 
                 var IDs = Instance.option.UserIDs.Value.Split(';');
                 string[][] idList = new string[IDs.Length][];
@@ -134,12 +128,11 @@ namespace TootTally.TournamentHost
                 / Static : 242
                 / PX : 372
                 */
-                Plugin.Instance.LogInfo("X: " + horizontalScreenCount + " Y: " + verticalScreenCount);
                 for (int y = 0; y < verticalScreenCount; y++)
                 {
                     for (int x = 0; x < horizontalScreenCount; x++)
                     {
-                        if (int.TryParse(idList[y][x], out int id))
+                        if (int.TryParse(idList[y][x], out int id) && id != 0)
                         {
                             var tc = gameplayCanvas.AddComponent<TournamentGameplayController>();
                             tc.Initialize(__instance, GameObject.Instantiate(botLeftCam), new Rect(x * horizontalRatio, y * verticalRatio, horizontalRatio, verticalRatio), canvasObject.transform, new SpectatingSystem(id, idList[y][x].ToString()));
